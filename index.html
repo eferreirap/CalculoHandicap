@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1a0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Golf HI" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>Golf HI — Handicap Index</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-deep:    #060e07;
+      --bg-mid:     #0d1f10;
+      --bg-card:    #101f13;
+      --bg-input:   #0c1a0e;
+      --border:     #1f3a24;
+      --border-hi:  #2f5a36;
+      --gold:       #FFD060;
+      --gold-dim:   #C8A040;
+      --green-hi:   #4CAF72;
+      --green-mid:  #2E7D50;
+      --text:       #F0EDE6;
+      --text-muted: #8FA890;
+      --text-dim:   #4A6B52;
+      --red:        #E05C5C;
+      --radius:     12px;
+      --radius-sm:  8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html { background: var(--bg-deep); }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100dvh;
+      padding-bottom: 100px;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-deep);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(12px);
+    }
+    .header-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--gold);
+    }
+    .header-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* ── HI DISPLAY ── */
+    .hi-section {
+      margin: 20px 16px 0;
+      background: linear-gradient(145deg, #0f2414 0%, #0a1a0f 60%, #071208 100%);
+      border: 1px solid var(--border-hi);
+      border-radius: 16px;
+      padding: 28px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hi-section::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(76,175,114,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hi-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .hi-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 72px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--gold);
+      letter-spacing: -0.02em;
+    }
+    .hi-value.placeholder {
+      color: var(--text-dim);
+      font-size: 48px;
+    }
+    .hi-meta {
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .hi-chip {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+    }
+    .hi-chip span { color: var(--green-hi); font-weight: 500; }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      margin: 20px 16px 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--bg-mid);
+    }
+    .tab {
+      flex: 1;
+      padding: 11px 0;
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+    }
+    .tab.active {
+      background: var(--border-hi);
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    /* ── PANELS ── */
+    .panel { display: none; padding: 0 16px; margin-top: 16px; }
+    .panel.active { display: block; }
+
+    /* ── FORM ── */
+    .form-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .form-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 18px;
+      letter-spacing: 0.02em;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .form-input {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 15px;
+      padding: 11px 13px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .form-input:focus { border-color: var(--green-mid); }
+    .form-input::placeholder { color: var(--text-dim); }
+
+    .btn-add {
+      margin-top: 16px;
+      width: 100%;
+      padding: 14px;
+      background: var(--green-mid);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-add:active { transform: scale(0.98); background: var(--green-hi); }
+
+    .form-helper {
+      margin-top: 14px;
+      background: rgba(255,208,96,0.05);
+      border: 1px solid rgba(255,208,96,0.15);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 11px;
+      color: var(--gold-dim);
+      line-height: 1.7;
+    }
+    .form-helper strong { color: var(--gold); }
+
+    /* ── ROUNDS LIST ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gold);
+    }
+    .rounds-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+    .rounds-count span { color: var(--green-hi); }
+
+    .round-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+    .round-card.best { border-color: var(--green-mid); }
+    .round-card.best::before {
+      content: '★';
+      position: absolute;
+      top: 8px; right: 10px;
+      font-size: 11px;
+      color: var(--gold);
+    }
+    .round-num {
+      font-size: 11px;
+      color: var(--text-dim);
+      min-width: 22px;
+      text-align: center;
+    }
+    .round-info { flex: 1; }
+    .round-course {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .round-date {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .round-stats {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+    .round-diff {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .round-score {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .btn-delete {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      font-size: 14px;
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-delete:active { border-color: var(--red); color: var(--red); }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-dim);
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+    .empty-state p { font-size: 13px; line-height: 1.6; }
+
+    /* ── STATS PANEL ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-box-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .stat-box-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .diff-chart {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .chart-title {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 80px;
+    }
+    .chart-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+    .chart-bar {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      transition: height 0.4s ease;
+      min-height: 3px;
+    }
+    .chart-bar.best-bar { background: var(--green-mid); }
+    .chart-bar.normal-bar { background: var(--border-hi); }
+    .chart-bar-num {
+      font-size: 8px;
+      color: var(--text-dim);
+    }
+
+    /* ── WHS INFO ── */
+    .info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 12px;
+    }
+    .info-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .info-card p {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+    .info-card .formula {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--green-hi);
+      margin-top: 10px;
+      letter-spacing: 0.02em;
+    }
+    .table-whs {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+    .table-whs th {
+      text-align: left;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 10px;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .table-whs td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(31,58,36,0.5);
+      color: var(--text-muted);
+    }
+    .table-whs td:last-child { color: var(--gold); }
+    .table-whs tr.current td { background: rgba(46,125,80,0.15); color: var(--text); }
+    .table-whs tr.current td:last-child { color: var(--gold); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 90px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--green-mid);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { background: var(--red); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--bg-deep);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-btn {
+      flex: 1;
+      padding: 14px 0 10px;
+      background: transparent;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+      transition: color 0.2s;
+    }
+    .nav-btn.active { color: var(--gold); }
+    .nav-icon { font-size: 20px; }
+    .nav-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div>
+    <div class="header-title">Golf HI</div>
+    <div class="header-sub">World Handicap System</div>
+  </div>
+  <div style="font-size:22px">⛳</div>
+</header>
+
+<!-- HI DISPLAY -->
+<section class="hi-section" id="hiSection">
+  <div class="hi-label">Handicap Index</div>
+  <div class="hi-value placeholder" id="hiValue">—.—</div>
+  <div class="hi-meta" id="hiMeta" style="display:none">
+    <div class="hi-chip">Rondas: <span id="hiRounds">0</span></div>
+    <div class="hi-chip">Usadas: <span id="hiUsed">0</span></div>
+    <div class="hi-chip">Mejor: <span id="hiBest">—</span></div>
+  </div>
+  <div id="hiHint" style="font-size:11px;color:var(--text-dim);margin-top:8px">Agrega al menos 3 rondas para calcular</div>
+</section>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('add')">+ Agregar</button>
+  <button class="tab" onclick="switchTab('rounds')">Rondas</button>
+  <button class="tab" onclick="switchTab('stats')">Stats</button>
+  <button class="tab" onclick="switchTab('info')">WHS</button>
+</div>
+
+<!-- PANEL: ADD ROUND -->
+<div class="panel active" id="panel-add">
+  <div class="form-card">
+    <div class="form-title">Nueva Ronda</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label class="form-label">Campo / Curso</label>
+        <input class="form-input" id="inp-course" type="text" placeholder="Ej. Club de Golf México" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input class="form-input" id="inp-date" type="date" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Score Bruto</label>
+        <input class="form-input" id="inp-score" type="number" placeholder="82" inputmode="numeric" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Course Rating</label>
+        <input class="form-input" id="inp-cr" type="number" placeholder="71.5" step="0.1" inputmode="decimal" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Slope Rating</label>
+        <input class="form-input" id="inp-slope" type="number" placeholder="125" inputmode="numeric" />
+      </div>
+    </div>
+    <button class="btn-add" onclick="addRound()">Guardar Ronda</button>
+    <div class="form-helper">
+      <strong>Diferencial WHS</strong> = (113 ÷ Slope) × (Score − Course Rating)<br/>
+      El HI usa el promedio de los mejores diferenciales según tabla WHS × 0.96
+    </div>
+  </div>
+</div>
+
+<!-- PANEL: ROUNDS -->
+<div class="panel" id="panel-rounds">
+  <div class="section-header">
+    <div class="section-title">Historial</div>
+    <div class="rounds-count"><span id="roundCount">0</span> / 20</div>
+  </div>
+  <div id="roundsList"></div>
+</div>
+
+<!-- PANEL: STATS -->
+<div class="panel" id="panel-stats">
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="diff-chart" id="diffChart" style="display:none">
+    <div class="chart-title">Diferenciales — últimas rondas</div>
+    <div class="chart-bars" id="chartBars"></div>
+  </div>
+  <div id="statsEmpty" class="empty-state">
+    <div class="icon">📊</div>
+    <p>Agrega rondas para ver estadísticas</p>
+  </div>
+</div>
+
+<!-- PANEL: INFO WHS -->
+<div class="panel" id="panel-info">
+  <div class="info-card">
+    <div class="info-card-title">¿Cómo se calcula el HI?</div>
+    <p>El <strong style="color:var(--text)">World Handicap System</strong> usa los diferenciales de score de tus últimas rondas para calcular tu Handicap Index.</p>
+    <div class="formula">Diferencial = (113 ÷ Slope Rating) × (Score − Course Rating)</div>
+  </div>
+  <div class="info-card">
+    <div class="info-card-title">Tabla de Diferenciales Usados</div>
+    <p>Según el número de rondas registradas, se usan los mejores diferenciales:</p>
+    <table class="table-whs" id="whsTable">
+      <tr><th>Rondas</th><th>Diferenciales usados</th></tr>
+    </table>
+  </div>
+  <div class="info-card">
+    <div class="info-card-title">Ajuste Final × 0.96</div>
+    <p>El promedio de los mejores diferenciales se multiplica por <strong style="color:var(--green-hi)">0.96</strong> (ajuste de excelencia). El resultado se trunca a 1 decimal para obtener el <strong style="color:var(--gold)">Handicap Index</strong>.</p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── WHS TABLE ──
+const WHS_TABLE = [
+  [3,1],[4,1],[5,1],[6,2],[7,2],[8,2],[9,3],[10,3],
+  [11,3],[12,4],[13,4],[14,4],[15,5],[16,5],[17,6],[18,6],[19,7],[20,8]
+];
+
+// ── STATE ──
+let rounds = JSON.parse(localStorage.getItem('golf_rounds') || '[]');
+
+// ── UTILS ──
+function calcDiff(score, cr, slope) {
+  return (113 / slope) * (score - cr);
+}
+
+function calcHI(rounds) {
+  if (rounds.length < 3) return null;
+  const row = WHS_TABLE.find(r => r[0] === rounds.length) || WHS_TABLE[WHS_TABLE.length - 1];
+  const n = row[1];
+  const sorted = [...rounds].sort((a, b) => a.diff - b.diff);
+  const best = sorted.slice(0, n);
+  const avg = best.reduce((s, r) => s + r.diff, 0) / n;
+  return Math.floor(avg * 0.96 * 10) / 10;
+}
+
+function save() {
+  if (rounds.length > 20) rounds = rounds.slice(-20);
+  localStorage.setItem('golf_rounds', JSON.stringify(rounds));
+}
+
+function fmtDate(d) {
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'2-digit' });
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => { t.className = 'toast'; }, 2500);
+}
+
+// ── HI DISPLAY ──
+function updateHI() {
+  const hi = calcHI(rounds);
+  const valEl = document.getElementById('hiValue');
+  const metaEl = document.getElementById('hiMeta');
+  const hintEl = document.getElementById('hiHint');
+
+  if (hi === null) {
+    valEl.textContent = '—.—';
+    valEl.className = 'hi-value placeholder';
+    metaEl.style.display = 'none';
+    const needed = 3 - rounds.length;
+    hintEl.textContent = needed > 0 ? `Agrega ${needed} ronda${needed > 1 ? 's' : ''} más para calcular` : '';
+    hintEl.style.display = '';
+  } else {
+    valEl.textContent = hi.toFixed(1);
+    valEl.className = 'hi-value';
+    metaEl.style.display = 'flex';
+    hintEl.style.display = 'none';
+
+    const row = WHS_TABLE.find(r => r[0] === rounds.length) || WHS_TABLE[WHS_TABLE.length-1];
+    const sorted = [...rounds].sort((a,b) => a.diff - b.diff);
+    document.getElementById('hiRounds').textContent = rounds.length;
+    document.getElementById('hiUsed').textContent = row[1];
+    document.getElementById('hiBest').textContent = sorted[0]?.diff.toFixed(1) ?? '—';
+  }
+}
+
+// ── ROUNDS LIST ──
+function renderRounds() {
+  const el = document.getElementById('roundsList');
+  document.getElementById('roundCount').textContent = rounds.length;
+
+  if (!rounds.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🏌️</div><p>No hay rondas registradas.<br/>Agrega tu primera ronda.</p></div>';
+    return;
+  }
+
+  const bestSet = getBestSet();
+  const html = [...rounds].reverse().map((r, idx) => {
+    const origIdx = rounds.length - 1 - idx;
+    const isBest = bestSet.has(origIdx);
+    return `<div class="round-card${isBest ? ' best' : ''}">
+      <div class="round-num">${origIdx + 1}</div>
+      <div class="round-info">
+        <div class="round-course">${r.course || 'Sin nombre'}</div>
+        <div class="round-date">${fmtDate(r.date)} &nbsp;·&nbsp; CR ${r.cr} / Slope ${r.slope}</div>
+      </div>
+      <div class="round-stats">
+        <div class="round-diff">${r.diff.toFixed(1)}</div>
+        <div class="round-score">Score ${r.score}</div>
+      </div>
+      <button class="btn-delete" onclick="deleteRound(${origIdx})" title="Eliminar">✕</button>
+    </div>`;
+  }).join('');
+  el.innerHTML = html;
+}
+
+function getBestSet() {
+  if (rounds.length < 3) return new Set();
+  const row = WHS_TABLE.find(r => r[0] === rounds.length) || WHS_TABLE[WHS_TABLE.length-1];
+  const indexed = rounds.map((r, i) => ({ diff: r.diff, i }));
+  indexed.sort((a, b) => a.diff - b.diff);
+  return new Set(indexed.slice(0, row[1]).map(r => r.i));
+}
+
+// ── ADD ROUND ──
+function addRound() {
+  const course = document.getElementById('inp-course').value.trim();
+  const date   = document.getElementById('inp-date').value;
+  const score  = parseFloat(document.getElementById('inp-score').value);
+  const cr     = parseFloat(document.getElementById('inp-cr').value);
+  const slope  = parseFloat(document.getElementById('inp-slope').value);
+
+  if (!date || isNaN(score) || isNaN(cr) || isNaN(slope)) {
+    showToast('Completa todos los campos', true); return;
+  }
+  if (slope < 55 || slope > 155) { showToast('Slope debe estar entre 55-155', true); return; }
+  if (cr < 60 || cr > 80) { showToast('Course Rating inválido', true); return; }
+  if (score < 50 || score > 200) { showToast('Score inválido', true); return; }
+  if (rounds.length >= 20) { showToast('Máximo 20 rondas. Elimina una primero.', true); return; }
+
+  const diff = calcDiff(score, cr, slope);
+  rounds.push({ course, date, score, cr, slope, diff: Math.round(diff * 100) / 100 });
+  save();
+
+  // reset form
+  ['inp-course','inp-score','inp-cr','inp-slope'].forEach(id => document.getElementById(id).value = '');
+
+  updateHI(); renderRounds(); renderStats();
+  showToast('Ronda guardada ✓');
+}
+
+// ── DELETE ROUND ──
+function deleteRound(idx) {
+  rounds.splice(idx, 1);
+  save();
+  updateHI(); renderRounds(); renderStats();
+  showToast('Ronda eliminada');
+}
+
+// ── STATS ──
+function renderStats() {
+  const grid = document.getElementById('statsGrid');
+  const chart = document.getElementById('diffChart');
+  const empty = document.getElementById('statsEmpty');
+
+  if (!rounds.length) {
+    grid.innerHTML = ''; chart.style.display = 'none'; empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  chart.style.display = '';
+
+  const diffs = rounds.map(r => r.diff);
+  const min = Math.min(...diffs);
+  const max = Math.max(...diffs);
+  const avg = diffs.reduce((a,b)=>a+b,0) / diffs.length;
+  const hi = calcHI(rounds);
+
+  grid.innerHTML = [
+    ['Mejor Dif.', min.toFixed(1)],
+    ['Peor Dif.', max.toFixed(1)],
+    ['Promedio', avg.toFixed(1)],
+    ['HI Actual', hi !== null ? hi.toFixed(1) : '—'],
+  ].map(([l,v]) => `<div class="stat-box"><div class="stat-box-label">${l}</div><div class="stat-box-val">${v}</div></div>`).join('');
+
+  // Chart
+  const bestSet = getBestSet();
+  const chartBars = document.getElementById('chartBars');
+  const maxD = Math.max(...diffs, 1);
+  chartBars.innerHTML = rounds.map((r, i) => {
+    const pct = Math.max((r.diff / maxD) * 100, 4);
+    const cls = bestSet.has(i) ? 'best-bar' : 'normal-bar';
+    return `<div class="chart-bar-wrap">
+      <div class="chart-bar ${cls}" style="height:${pct}%"></div>
+      <div class="chart-bar-num">${i+1}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── WHS TABLE ──
+function renderWHSTable() {
+  const table = document.getElementById('whsTable');
+  const currentCount = rounds.length;
+  WHS_TABLE.forEach(([n, used]) => {
+    const isCurrent = n === currentCount;
+    const tr = document.createElement('tr');
+    if (isCurrent) tr.className = 'current';
+    tr.innerHTML = `<td>${n}</td><td>${used} mejor${used > 1 ? 'es' : ''}</td>`;
+    table.appendChild(tr);
+  });
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'stats') renderStats();
+}
+
+// ── INIT ──
+function init() {
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('inp-date').value = today;
+  renderWHSTable();
+  updateHI();
+  renderRounds();
+}
+
+init();
+
+// ── SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
