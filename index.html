@@ -553,7 +553,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Course Rating</label>
-        <input class="form-input" id="inp-cr" type="text" placeholder="71.5" inputmode="decimal" />
+        <input class="form-input" id="inp-cr" type="text" placeholder="71.5" inputmode="numeric" />
       </div>
       <div class="form-group">
         <label class="form-label">Slope Rating</label>
@@ -828,6 +828,14 @@ function init() {
 }
 
 init();
+
+// ── FIX DECIMAL iOS (coma → punto en tiempo real) ──
+document.getElementById('inp-cr').addEventListener('input', function() {
+  const pos = this.selectionStart;
+  const prev = this.value;
+  this.value = prev.replace(',', '.');
+  if (prev !== this.value) this.setSelectionRange(pos, pos);
+});
 
 // ── SERVICE WORKER ──
 if ('serviceWorker' in navigator) {
