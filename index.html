@@ -553,7 +553,11 @@
       </div>
       <div class="form-group">
         <label class="form-label">Course Rating</label>
-        <input class="form-input" id="inp-cr" type="text" placeholder="71.5" inputmode="numeric" />
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input class="form-input" id="inp-cr-int" type="number" placeholder="71" inputmode="numeric" style="flex:1;text-align:center;" />
+          <span style="color:var(--gold);font-size:22px;font-weight:700;">.</span>
+          <input class="form-input" id="inp-cr-dec" type="number" placeholder="5" inputmode="numeric" min="0" max="9" style="flex:0 0 54px;text-align:center;" />
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Slope Rating</label>
@@ -726,7 +730,9 @@ function addRound() {
   const course = document.getElementById('inp-course').value.trim();
   const date   = document.getElementById('inp-date').value;
   const score  = parseFloat(document.getElementById('inp-score').value);
-  const cr     = parseFloat(document.getElementById('inp-cr').value.replace(',', '.'));
+  const crInt  = document.getElementById('inp-cr-int').value.trim();
+  const crDec  = document.getElementById('inp-cr-dec').value.trim();
+  const cr     = parseFloat(crInt + '.' + (crDec === '' ? '0' : crDec));
   const slope  = parseFloat(document.getElementById('inp-slope').value);
 
   if (!date || isNaN(score) || isNaN(cr) || isNaN(slope)) {
@@ -742,7 +748,7 @@ function addRound() {
   save();
 
   // reset form
-  ['inp-course','inp-score','inp-cr','inp-slope'].forEach(id => document.getElementById(id).value = '');
+  ['inp-course','inp-score','inp-cr-int','inp-cr-dec','inp-slope'].forEach(id => document.getElementById(id).value = '');
 
   updateHI(); renderRounds(); renderStats();
   showToast('Ronda guardada ✓');
@@ -828,14 +834,6 @@ function init() {
 }
 
 init();
-
-// ── FIX DECIMAL iOS (coma → punto en tiempo real) ──
-document.getElementById('inp-cr').addEventListener('input', function() {
-  const pos = this.selectionStart;
-  const prev = this.value;
-  this.value = prev.replace(',', '.');
-  if (prev !== this.value) this.setSelectionRange(pos, pos);
-});
 
 // ── SERVICE WORKER ──
 if ('serviceWorker' in navigator) {
