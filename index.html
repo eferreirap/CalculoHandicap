@@ -553,7 +553,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Course Rating</label>
-        <input class="form-input" id="inp-cr" type="number" placeholder="71.5" step="0.1" inputmode="decimal" />
+        <input class="form-input" id="inp-cr" type="text" placeholder="71.5" inputmode="decimal" />
       </div>
       <div class="form-group">
         <label class="form-label">Slope Rating</label>
@@ -726,7 +726,7 @@ function addRound() {
   const course = document.getElementById('inp-course').value.trim();
   const date   = document.getElementById('inp-date').value;
   const score  = parseFloat(document.getElementById('inp-score').value);
-  const cr     = parseFloat(document.getElementById('inp-cr').value);
+  const cr     = parseFloat(document.getElementById('inp-cr').value.replace(',', '.'));
   const slope  = parseFloat(document.getElementById('inp-slope').value);
 
   if (!date || isNaN(score) || isNaN(cr) || isNaN(slope)) {
